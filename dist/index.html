@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101a19">
+  <meta name="description" content="Fight for a divided coast in Tidefront, a 3D combined-arms conquest game.">
+  <title>Tidefront</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <canvas id="field" aria-label="Tidefront 3D battlefield" tabindex="0"></canvas>
+  <div id="world-markers" aria-hidden="true"></div>
+
+  <main id="lobby" class="landing">
+    <header class="mast">
+      <div class="brand"><span class="mark" aria-hidden="true"></span>Tidefront</div>
+      <button id="help-lobby" class="bare">Field manual</button>
+    </header>
+    <div class="landing-content">
+      <section class="hero">
+        <div class="eyebrow"><span></span> Coastal conquest</div>
+        <h1>TIDEFRONT</h1>
+        <p>Two countries. One divided coast. Fight across land, sea and air to capture and hold enemy territory.</p>
+        <div class="factions"><span class="aster">Aster</span><span class="versus">VS</span><span class="veyra">Veyra</span></div>
+      </section>
+      <section class="deploy" aria-label="Play Tidefront">
+        <div class="chart-head"><h2>The Straits</h2><span>6 control points</span></div>
+        <canvas id="lobby-chart" width="390" height="174" aria-label="Map of Aster and Veyra"></canvas>
+        <div id="launchers">
+          <button id="lead" class="primary">Lead the battle <span>Command map</span></button>
+          <button id="solo" class="secondary">Fight solo <span>15 bots</span></button>
+          <button id="online" class="secondary">Join online <span>8v8</span></button>
+        </div>
+        <form id="online-form" hidden>
+          <label for="callsign">Callsign</label>
+          <input name="callsign" id="callsign" autocomplete="nickname" maxlength="20" placeholder="Operator">
+          <label for="code">Room code</label>
+          <input name="code" id="code" maxlength="16" pattern="[A-Za-z0-9\-]{2,16}" value="STRAIT">
+          <label for="host">Server address <span>optional on the game server</span></label>
+          <input name="host" id="host" type="url" autocomplete="url" placeholder="https://your-tidefront-server">
+          <p id="network-note" role="status">Use the same server and room code as your teammates.</p>
+          <button id="connect" class="primary" type="submit">Join match</button>
+          <button id="go-back" class="bare" type="button">Back</button>
+        </form>
+        <p id="launch-error" role="status" hidden></p>
+      </section>
+    </div>
+    <footer class="lobby-foot"><span>Combined arms</span><span>Play solo or host a match</span></footer>
+  </main>
+
+  <section id="hud" aria-label="Battlefield status" hidden>
+    <header class="hud-top">
+      <div class="battle-id"><span class="mark" aria-hidden="true"></span><div><strong>The Straits</strong><small id="mode-label"></small></div></div>
+      <div class="capture-board">
+        <div class="team-score aster"><span>Aster</span><strong id="score-aster">3</strong></div>
+        <div><div id="flag-status" class="flags"></div><div id="hold-status" class="hold"></div></div>
+        <div class="team-score veyra"><strong id="score-veyra">3</strong><span>Veyra</span></div>
+      </div>
+      <button id="pause" class="hud-button">Menu <kbd>Esc</kbd></button>
+    </header>
+    <div id="compass"></div>
+    <div id="reticle" class="reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div id="hurt" aria-hidden="true"></div>
+    <div id="announcements" aria-live="polite"></div>
+    <div id="use-hint"></div>
+    <footer class="hud-bottom">
+      <button id="map-button" class="minimap" aria-label="Open command map">
+        <canvas id="mini-chart" width="252" height="177" aria-hidden="true"></canvas>
+        <span>Command map <kbd>M</kbd></span>
+      </button>
+      <div class="readout">
+        <p id="gear-type"></p>
+        <div class="readout-line"><strong id="gear"></strong><span id="ammo"></span></div>
+        <div class="armor"><div id="hp-fill"></div></div>
+        <p id="gear-tip"></p>
+      </div>
+    </footer>
+    <div id="touch" hidden aria-label="Touch controls">
+      <div id="stick"><i></i></div>
+      <div class="touch-actions">
+        <button data-hold="alt" id="touch-alt">Alt fire</button><button data-hold="fire" class="hot">Fire</button>
+        <button data-hold="down" id="touch-down">Down</button><button data-hold="up" id="touch-up">Jump</button>
+        <button data-action="interact">Use</button><button data-action="special" id="touch-special">Swap</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="manual" class="overlay" hidden>
+    <article class="sheet">
+      <div class="sheet-head"><h2>Field manual</h2><button data-close class="bare">Close</button></div>
+      <div class="help-grid">
+        <section><h3>Infantry</h3><p><kbd>W A S D</kbd> Move and swim. Hold <kbd>Shift</kbd> to sprint and press <kbd>Space</kbd> to jump. Use the mouse to aim, left click to fire, <kbd>1</kbd> for the AK-47, <kbd>2</kbd> for the RPG and <kbd>R</kbd> to reload.</p></section>
+        <section><h3>Ground vehicles</h3><p><kbd>E</kbd> boards an empty vehicle. Drive with <kbd>W A S D</kbd>. Aim turrets with the mouse. Left click fires the main weapon. Right click fires the tank’s machine gun or the jet’s missile.</p></section>
+        <section><h3>Flight</h3><p>On the runway, hold <kbd>W</kbd> to build speed. Hold <kbd>Space</kbd> to lift off, <kbd>Q</kbd> to lower the nose and <kbd>A</kbd> or <kbd>D</kbd> to turn. <kbd>S</kbd> slows the jet.</p></section>
+        <section><h3>Landing ship</h3><p>Walk or drive up the lowered stern ramp. Press <kbd>G</kbd> at the helm to secure it. Sail with <kbd>W A S D</kbd>. Release the throttle near the marked buoys and press <kbd>G</kbd> to berth and lower the ramp.</p></section>
+        <section><h3>Conquest</h3><p>Enter a control zone and stay inside to capture it. Enemy presence contests the zone. Hold all three enemy bases for 12 seconds to win.</p></section>
+        <section><h3>Command and fight</h3><p>Press <kbd>M</kbd> to switch between the map and your character. Select a friendly AI unit and mark a destination on the map. Orders continue in combat. <kbd>C</kbd> changes the camera and <kbd>Tab</kbd> opens the roster. On touch screens, drag the right side to aim.</p></section>
+      </div>
+    </article>
+  </section>
+
+  <section id="pause-panel" class="overlay" hidden>
+    <article class="sheet small">
+      <div class="sheet-head"><h2>Match menu</h2><button data-close class="bare">Close</button></div>
+      <button id="resume" class="primary">Resume</button>
+      <button id="help-game" class="secondary">Field manual</button>
+      <button id="sound" class="secondary">Sound on</button>
+      <button id="leave" class="secondary">Return to menu</button>
+    </article>
+  </section>
+
+  <section id="tactical" class="overlay" hidden>
+    <article class="sheet command-sheet">
+      <div class="sheet-head">
+        <div><h2>Command map</h2><p id="command-faction"></p></div>
+        <button id="return-fight" class="primary">Return to fight <kbd>M</kbd></button>
+      </div>
+      <div class="command-layout">
+        <section class="command-unit-pane" aria-label="Friendly units">
+          <h3>Friendly units</h3>
+          <div id="command-units"></div>
+          <div class="group-actions">
+            <button id="select-group" class="bare">Select to merge</button>
+            <button id="merge-group" class="secondary" hidden>Merge selected</button>
+            <button id="split-group" class="bare" hidden>Split group</button>
+          </div>
+          <div class="unit-actions">
+            <button id="hold-unit" class="secondary">Hold position</button>
+            <button id="release-unit" class="bare">Resume AI</button>
+          </div>
+          <p id="command-notice" role="status"></p>
+          <section class="support-panel" aria-label="Reinforcements and air support">
+            <div class="support-heading"><h3>Requisition</h3><strong id="support-points"></strong></div>
+            <p>250 per capture · 100 per kill</p>
+            <div id="support-actions"></div>
+            <p id="support-queue" role="status" hidden></p>
+          </section>
+        </section>
+        <section class="command-chart-pane" aria-label="Battlefield chart">
+          <button id="mark-ballistic" class="bare mark-ballistic" hidden>Mark launcher target</button>
+          <p id="command-hint"></p>
+          <div class="command-chart">
+            <canvas id="full-chart" width="930" height="570" tabindex="0"
+              aria-label="Battlefield map. Select a friendly unit, then click a destination or use arrow keys and Enter."></canvas>
+          </div>
+          <div id="objectives"></div>
+          <p class="map-legend"><span class="aster">Aster</span><span class="veyra">Veyra</span><span>◈ Landing berth</span><span>□ Runway</span><span>R Vehicle reserve</span></p>
+        </section>
+      </div>
+    </article>
+  </section>
+
+  <section id="roster" class="overlay" hidden>
+    <article class="sheet">
+      <div class="sheet-head"><h2>Match roster</h2><button data-close class="bare">Close</button></div>
+      <div id="roster-body"></div>
+    </article>
+  </section>
+
+  <section id="result" class="overlay" hidden>
+    <article class="sheet small">
+      <div class="eyebrow"><span></span> Territory secured</div>
+      <h2 id="winner"></h2>
+      <p id="result-info"></p>
+      <button id="rematch" class="primary">Play again</button>
+      <button id="exit-result" class="secondary">Return to menu</button>
+    </article>
+  </section>
+  <script src="./client.js" defer></script>
+</body>
+</html>
